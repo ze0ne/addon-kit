@@ -90,7 +90,7 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
   const genetateData = useCallback(
     (data: string) => {
       // Générer le JSON de contexte
-      const message = `Tu es rédacteur de blog et tu dois écrire un article complet (2000 mots) sur l'esport CS2 Vitality et ses derniers résultats et rapport avec l'actuatualité esport de Counter Strike 2, tu dois donner des éléménts récents sur l'esport et des tendances actuelles dans le jeu. Voici des informations sur les propriétés du composant pour t'aider à générer un contenu pertinent, garde bien la même structure et le même nom pour chaque proprité, le mapping doit être identique :\n\n${data}`;
+      const message = `Tu es rédacteur de blog et tu dois écrire un article complet (2000 mots) sur l'esport CS2 Vitality et ses derniers résultats et rapport avec l'actuatualité esport de Counter Strike 2, tu dois donner des éléménts récents sur l'esport et des tendances actuelles dans le jeu. Tu dois rédiger en arabe. Voici des informations sur les propriétés du composant pour t'aider à générer un contenu pertinent, garde bien la même structure et le même nom pour chaque proprité, le mapping doit être identique :\n\n${data}`;
 
       console.log("Requesting data", EVENTS);
       getOpenAiResponse({
@@ -112,7 +112,7 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
         initial="overview"
         backgroundColor={theme.background.hoverable}
       >
-        <div id="overview" title="Overview" color={theme.color.positive}>
+        <div id="overview" title="Properties" color={theme.color.positive}>
           {
             <Placeholder>
               <Fragment>
@@ -193,46 +193,100 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
           }
         </div>
         <div
-          id="div"
-          title={`${divs.length} Divs`}
-          color={theme.color.negative}
+          id="settings"
+          title="Settings"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#f4f4f4",
+          }}
         >
-          {divs.length > 0 ? (
-            <Placeholder>
-              <p>The following divs have less than 2 childNodes</p>
-              <List
-                items={divs.map((item, index) => ({
-                  title: `item #${index}`,
-                  description: JSON.stringify(item, null, 2),
-                }))}
+          <div
+            style={{
+              padding: "2rem",
+              width: "100%",
+              maxWidth: "500px",
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "1.8rem",
+                fontWeight: "bold",
+                marginBottom: "1.5rem",
+                color: "#333",
+                textAlign: "center",
+              }}
+            >
+              Configuration
+            </h2>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <label
+                htmlFor="openai-key"
+                style={{
+                  display: "block",
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                  marginBottom: "0.5rem",
+                  color: "#555",
+                }}
+              >
+                OpenAI API Key
+              </label>
+              <input
+                id="openai-key"
+                type="text"
+                value={state.openAiKey || ""}
+                onChange={(e) =>
+                  setState({ ...state, openAiKey: e.target.value })
+                }
+                placeholder="Enter your OpenAI API key"
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  fontSize: "1rem",
+                  borderRadius: "4px",
+                  border: "1px solid #ccc",
+                  outline: "none",
+                  transition: "border-color 0.3s",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "#6200ea")}
+                onBlur={(e) => (e.target.style.borderColor = "#ccc")}
               />
-            </Placeholder>
-          ) : (
-            <Placeholder>
-              <p>No divs found</p>
-            </Placeholder>
-          )}
-        </div>
-        <div
-          id="all"
-          title={`${styled.length} All`}
-          color={theme.color.warning}
-        >
-          {styled.length > 0 ? (
-            <Placeholder>
-              <p>The following elements have a style attribute</p>
-              <List
-                items={styled.map((item, index) => ({
-                  title: `item #${index}`,
-                  description: JSON.stringify(item, null, 2),
-                }))}
-              />
-            </Placeholder>
-          ) : (
-            <Placeholder>
-              <p>No styled elements found</p>
-            </Placeholder>
-          )}
+            </div>
+            <button
+              onClick={() => {
+                localStorage.setItem("openaiKey", state.openAiKey || "");
+                alert("OpenAI API Key saved!");
+              }}
+              style={{
+                display: "block",
+                width: "100%",
+                padding: "0.75rem",
+                fontSize: "1rem",
+                fontWeight: "bold",
+                color: "#fff",
+                backgroundColor: "#6200ea",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                transition: "background-color 0.3s",
+              }}
+              onMouseEnter={(e) => (e.target.style.backgroundColor = "#4500b5")}
+              onMouseLeave={(e) => (e.target.style.backgroundColor = "#6200ea")}
+            >
+              Save Key
+            </button>
+          </div>
         </div>
       </TabsState>
     </AddonPanel>
