@@ -98,6 +98,7 @@ export const Article = ({
     <article style={articleStyle} {...props}>
       <header style={headerStyle}>
         <h1>{title}</h1>
+        <h2>A subtitle</h2>
         <p>
           <strong>By {author}</strong> | <em>{publicationDate}</em>
         </p>
