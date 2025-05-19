@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "description": "ChatGPT storybook companion",
   "keywords": [
-    "storybook-addons", "storybook-addons"
+    "storybook-addons",
+    "storybook-addons"
   ],
   "repository": {
     "type": "git",
@@ -42,10 +43,13 @@
     "release": "npm run build && auto shipit",
     "eject-ts": "zx scripts/eject-typescript.js",
     "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "chromatic": "npx chromatic --project-token=chpt_4647bfd7d8e2b2c",
     "build:netlify": "npm run build && npm run build-storybook"
   },
   "dependencies": {
-    "@storybook/icons": "^1.2.10"
+    "@storybook/icons": "^1.2.10",
+    "loki": "^0.35.1"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "0.0.0-pr-26654-sha-49d01553",
@@ -61,6 +65,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "auto": "^11.1.1",
     "boxen": "^7.1.1",
+    "chromatic": "^11.28.2",
     "dedent": "^1.5.1",
     "npm-run-all2": "^6.2.3",
     "prettier": "^3.3.3",
@@ -99,7 +104,15 @@
   "storybook": {
     "displayName": "ChatGPT",
     "supportedFrameworks": [
-      "react", "vue", "angular", "web-components", "ember", "html", "svelte", "preact", "react-native"
+      "react",
+      "vue",
+      "angular",
+      "web-components",
+      "ember",
+      "html",
+      "svelte",
+      "preact",
+      "react-native"
     ],
     "icon": "https://user-images.githubusercontent.com/321738/63501763-88dbf600-c4cc-11e9-96cd-94adadc2fd72.png"
   }
