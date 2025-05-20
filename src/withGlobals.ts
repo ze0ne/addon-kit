@@ -20,9 +20,9 @@ export const withGlobals = (
 
   useEffect(() => {
     if (!isInDocs) {
-      addExtraContentToStory(canvas, {
-        myAddon,
-      });
+      // addExtraContentToStory(canvas, {
+      //   myAddon,
+      // });
     }
   }, [myAddon, isInDocs]);
 
