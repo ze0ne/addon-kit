@@ -50,8 +50,7 @@ function addExtraContentToStory(canvas: ParentNode, state: Object) {
   `,
   );
 
-  preElement.innerHTML = `This snippet is injected by the withGlobals decorator.
-It updates as the user interacts with the ⚡ or Theme tools in the toolbar above.
+  preElement.innerHTML = `This snippet is injected by the withGlobals decorator. It updates as the user interacts with the ⚡ or Theme tools in the toolbar above.
 
 ${JSON.stringify(state, null, 2)}
 `;
