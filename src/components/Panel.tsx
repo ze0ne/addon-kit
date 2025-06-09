@@ -90,7 +90,7 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
   const genetateData = useCallback(
     (data: string) => {
       // Générer le JSON de contexte
-      const message = `Tu es rédacteur de blog et tu dois écrire un article complet (2000 mots) sur l'esport CS2 Vitality et ses derniers résultats et rapport avec l'actuatualité esport de Counter Strike 2, tu dois donner des éléménts récents sur l'esport et des tendances actuelles dans le jeu. Tu dois rédiger en arabe. Voici des informations sur les propriétés du composant pour t'aider à générer un contenu pertinent, garde bien la même structure et le même nom pour chaque proprité, le mapping doit être identique :\n\n${data}`;
+      const message = `Tu es rédacteur de blog et tu dois écrire un article complet (2000 mots) sur sur un sujet tech (développement informatique). Tu dois rédiger en français. Voici des informations sur les propriétés du composant pour t'aider à générer un contenu pertinent, garde bien la même structure et le même nom pour chaque proprité, le mapping doit être identique :\n\n${data}`;
 
       console.log("Requesting data", EVENTS);
       getOpenAiResponse({
@@ -119,7 +119,6 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
                 <div>
                   <h2>Propriétés du composant actuel :</h2>
                   <div>
-                    <h2>Propriétés du composant actuel :</h2>
                     <div style={{ overflowX: "auto", marginTop: "1rem" }}>
                       <table
                         style={{

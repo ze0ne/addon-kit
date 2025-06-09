@@ -35,10 +35,10 @@ export const Badge = ({
     display: "inline-block",
     padding:
       size === "small"
-        ? "2px 8px"
+        ? "242px 8px"
         : size === "large"
-        ? "8px 20px"
-        : "4px 12px",
+        ? "82px 20px"
+        : "45px 12px",
     fontSize: size === "small" ? "12px" : size === "large" ? "18px" : "14px",
     borderRadius: "50px",
     backgroundColor: primary ? "#007BFF" : backgroundColor,
