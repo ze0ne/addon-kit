@@ -7,7 +7,6 @@ export async function getOpenAiResponse({
   maxTokens?: number;
   customPrompt: string;
 }) {
-  console.log("SCHEMA", schema);
   const apiKey = localStorage.getItem("openAiKey") || "";
   const url = "https://api.openai.com/v1/chat/completions";
   const model = "gpt-3.5-turbo";
@@ -73,7 +72,6 @@ Répondez uniquement par l’objet JSON complété, sans commentaire.`;
   try {
     return JSON.parse(text);
   } catch (err) {
-    console.log("Texte brut de la réponse :", text);
     throw new Error("La réponse de l'API n'est pas un JSON valide : " + text);
   }
 }

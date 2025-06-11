@@ -32,16 +32,9 @@ export const RequestDataButton = styled(Button)({
 });
 
 function generateContextJson(args: any, argTypes: any): any {
-  console.log("ARGS", args);
-  console.log("ARGTYPES", argTypes);
   if (!args || !argTypes) return "{}";
   const properties = Object.keys(argTypes).map((key) => {
     const argType = argTypes[key];
-    console.log("DEFAULT", argType.table?.defaultValue?.summary);
-    console.log(
-      "DEFAULT CLEAN",
-      argType.table?.defaultValue?.summary.replace(/^['"]|['"]$/g, ""),
-    );
     // On ne garde que des valeurs simples pour le JSON
     return {
       name: key,
@@ -69,34 +62,20 @@ function generateContextJson(args: any, argTypes: any): any {
 }
 
 export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
-  console.log("Panel rendered");
-  console.log("Panel props", props);
   const [contextJson, setContextJson] = useState<string>("{}");
   const [args, updateArgs] = useArgs();
   const argTypes = useArgTypes();
-  console.log("argTypes", argTypes);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const prompt = textareaRef.current?.value ?? "";
-    console.log("Submitting prompt:", prompt);
     generateData(contextJson, prompt);
   };
 
   useEffect(() => {
-    console.log("Panel mounted");
-    return () => {
-      console.log("Panel unmounted");
-    };
-  }, []);
-
-  useEffect(() => {
-    console.log("useEffect called");
-
     const json = generateContextJson(args, argTypes);
-    console.log("Generated context JSON:", json);
     setContextJson(json);
   }, [args, argTypes]);
 
@@ -165,17 +144,13 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
       // Générer le JSON de contexte
       const mapping = `Voici des informations sur les propriétés du composant pour t'aider à générer un contenu pertinent, garde bien la même structure et le même nom pour chaque proprité, le mapping doit être identique :\n\n${schema}`;
       // const message = `Tu es rédacteur de blog et tu dois écrire un article complet (2000 mots) sur sur un sujet tech (développement informatique). Tu dois rédiger en français.${mapping}`;
-      console.log("schemaz", schema);
       const message = `Tu es un générateur de contenu pour des composants frontend :\n\n${mapping}`;
       const userPrompt = prompt ? `${prompt}${mapping}` : message;
-      console.log("Requesting data", EVENTS);
       getOpenAiResponse({
         schema,
         maxTokens: 2000,
         customPrompt: prompt,
       }).then((response: any) => {
-        console.log("Response from OpenAI:", response);
-
         updateArgs(response);
       });
       emit(EVENTS.REQUEST);

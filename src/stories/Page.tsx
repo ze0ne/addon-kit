@@ -14,7 +14,6 @@ interface PageProps {
 
 export const Page: React.FC<PageProps> = ({ overrideTitle, summary }) => {
   const [user, setUser] = React.useState<User>();
-  console.log("Override title:", overrideTitle);
 
   return (
     <article>
