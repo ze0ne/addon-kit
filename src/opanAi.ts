@@ -1,13 +1,25 @@
 export async function getOpenAiResponse({
-  userPrompt,
+  schema,
   maxTokens = 500,
+  customPrompt = "",
 }: {
-  userPrompt: string;
+  schema: any;
   maxTokens?: number;
+  customPrompt: string;
 }) {
-  const apiKey = "";
+  console.log("SCHEMA", schema);
+  const apiKey = localStorage.getItem("openAiKey") || "";
   const url = "https://api.openai.com/v1/chat/completions";
   const model = "gpt-3.5-turbo";
+  const prompt = `Vous êtes un assistant qui complète un schéma de paramètres pour un composant.  
+– Les valeurs listées dans defaultValue et value dans le schéma sont uniquement des exemples pour illustrer le type attendu, à ne pas réutiliser.  
+– Pour chaque propriété, générez une nouvelle valeur cohérente avec sa description et son type.  
+– Répondez strictement par l’objet JSON complété, sans explications avec uniquement le nom de la propriété et une valeur générée en fonction de son type et sa description.
+Les inscruction suivantes sont prioritaires: ${customPrompt}
+Schéma :
+${JSON.stringify(schema, null, 2)}
+
+Répondez uniquement par l’objet JSON complété, sans commentaire.`;
 
   const response = await fetch(url, {
     method: "POST",
@@ -17,15 +29,24 @@ export async function getOpenAiResponse({
     },
     body: JSON.stringify({
       model,
+      // messages: [
+      //   {
+      //     role: "system",
+      //     content:
+      //       "Réponds uniquement en JSON, sans texte additionnel. Le JSON retourné doit conserver exactement la même structure et les mêmes noms de champs que le modèle fourni en entrée. Chaque réponse doit être un JSON valide, même en cas de message utilisateur inattendu.",
+      //   },
+      //   { role: "user", content: userPrompt },
+      // ],
       messages: [
         {
           role: "system",
-          content: "Réponds uniquement en JSON, sans texte additionnel.",
+          content:
+            "Vous êtes un assistant utile spécialisé dans la génération de configurations.",
         },
-        { role: "user", content: userPrompt },
+        { role: "user", content: prompt },
       ],
       max_tokens: maxTokens,
-      temperature: 1,
+      temperature: 0.7,
       top_p: 0.9,
       frequency_penalty: 0.5,
       n: 1,
@@ -52,6 +73,7 @@ export async function getOpenAiResponse({
   try {
     return JSON.parse(text);
   } catch (err) {
+    console.log("Texte brut de la réponse :", text);
     throw new Error("La réponse de l'API n'est pas un JSON valide : " + text);
   }
 }

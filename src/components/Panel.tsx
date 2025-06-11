@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { Result } from "src/types";
@@ -30,39 +31,72 @@ export const RequestDataButton = styled(Button)({
   marginTop: "1rem",
 });
 
-function generateContextJson(args: any, argTypes: any): string {
+function generateContextJson(args: any, argTypes: any): any {
+  console.log("ARGS", args);
+  console.log("ARGTYPES", argTypes);
   if (!args || !argTypes) return "{}";
-
   const properties = Object.keys(argTypes).map((key) => {
     const argType = argTypes[key];
+    console.log("DEFAULT", argType.table?.defaultValue?.summary);
+    console.log(
+      "DEFAULT CLEAN",
+      argType.table?.defaultValue?.summary.replace(/^['"]|['"]$/g, ""),
+    );
+    // On ne garde que des valeurs simples pour le JSON
     return {
       name: key,
+      defaultValue: argType.table?.defaultValue?.summary
+        ? argType.table.defaultValue.summary.replace(/^['"]|['"]$/g, "")
+        : null, // Suppression des caractères d'échappement
+      value: args[key]
+        ? args[key].toString().replace(/\\\"/g, '"').replace(/\\'/g, "'")
+        : null,
       type: argType.type?.name || "unknown",
-      required: argType.type?.required || false,
+      required: !!argType.type?.required,
       description: argType.description || "",
-      control: argType.control || null,
-      defaultValue: argType.table?.defaultValue?.summary || null,
+      control:
+        typeof argType.control === "string"
+          ? argType.control
+          : argType.control?.type || null,
     };
   });
 
-  const contextJson = {
-    context:
-      "This JSON provides metadata about the properties of a component to help generate meaningful content.",
-    properties,
-  };
-
-  return JSON.stringify(contextJson, null, 2);
+  try {
+    return properties;
+  } catch (e) {
+    return '{"error":"Could not serialize context"}';
+  }
 }
 
 export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
+  console.log("Panel rendered");
   console.log("Panel props", props);
   const [contextJson, setContextJson] = useState<string>("{}");
   const [args, updateArgs] = useArgs();
   const argTypes = useArgTypes();
   console.log("argTypes", argTypes);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const prompt = textareaRef.current?.value ?? "";
+    console.log("Submitting prompt:", prompt);
+    generateData(contextJson, prompt);
+  };
+
   useEffect(() => {
+    console.log("Panel mounted");
+    return () => {
+      console.log("Panel unmounted");
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log("useEffect called");
+
     const json = generateContextJson(args, argTypes);
+    console.log("Generated context JSON:", json);
     setContextJson(json);
   }, [args, argTypes]);
 
@@ -76,9 +110,48 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
     overrideTitle: undefined,
   });
 
+  const [userPrompt, setUserPrompt] = useState<string>("");
+
   const { divs, styled, overrideTitle } = state;
 
   const theme = useTheme();
+
+  const UserPromptForm = React.memo(
+    ({ contextJson, onSubmit, userPrompt, onPromptChange }) => (
+      <form onSubmit={handleSubmit} style={{ margin: "1.5rem 0" }}>
+        <label
+          htmlFor="user-prompt"
+          style={{
+            fontWeight: "bold",
+            display: "block",
+            marginBottom: "0.5rem",
+          }}
+        >
+          Prompt personnalisé :
+        </label>
+        <textarea
+          id="user-prompt"
+          defaultValue=""
+          rows={4}
+          ref={textareaRef}
+          style={{
+            width: "100%",
+            padding: "0.75rem",
+            fontSize: "1rem",
+            borderRadius: "4px",
+            border: "1px solid #ccc",
+            marginBottom: "1rem",
+            fontFamily: "inherit",
+            resize: "vertical",
+          }}
+          placeholder="Écrivez ici votre prompt comme sur ChatGPT..."
+        />
+        <RequestDataButton type="submit">
+          Générer avec mon prompt
+        </RequestDataButton>
+      </form>
+    ),
+  );
 
   // https://storybook.js.org/docs/react/addons/addons-api#usechannel
   const emit = useChannel({
@@ -87,15 +160,19 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
     },
   });
 
-  const genetateData = useCallback(
-    (data: string) => {
+  const generateData = useCallback(
+    (schema: any, prompt?: string) => {
       // Générer le JSON de contexte
-      const message = `Tu es rédacteur de blog et tu dois écrire un article complet (2000 mots) sur sur un sujet tech (développement informatique). Tu dois rédiger en français. Voici des informations sur les propriétés du composant pour t'aider à générer un contenu pertinent, garde bien la même structure et le même nom pour chaque proprité, le mapping doit être identique :\n\n${data}`;
-
+      const mapping = `Voici des informations sur les propriétés du composant pour t'aider à générer un contenu pertinent, garde bien la même structure et le même nom pour chaque proprité, le mapping doit être identique :\n\n${schema}`;
+      // const message = `Tu es rédacteur de blog et tu dois écrire un article complet (2000 mots) sur sur un sujet tech (développement informatique). Tu dois rédiger en français.${mapping}`;
+      console.log("schemaz", schema);
+      const message = `Tu es un générateur de contenu pour des composants frontend :\n\n${mapping}`;
+      const userPrompt = prompt ? `${prompt}${mapping}` : message;
       console.log("Requesting data", EVENTS);
       getOpenAiResponse({
-        userPrompt: message,
+        schema,
         maxTokens: 2000,
+        customPrompt: prompt,
       }).then((response: any) => {
         console.log("Response from OpenAI:", response);
 
@@ -116,6 +193,18 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
           {
             <Placeholder>
               <Fragment>
+                <div>
+                  {/* Ajout du formulaire de prompt utilisateur */}
+                  <UserPromptForm
+                    contextJson={contextJson}
+                    userPrompt={userPrompt}
+                    onPromptChange={(e) => setUserPrompt(e.target.value)}
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      generateData(contextJson, userPrompt);
+                    }}
+                  />
+                </div>
                 <div>
                   <h2>Propriétés du composant actuel :</h2>
                   <div>
@@ -184,8 +273,8 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
                 </div>
               </Fragment>
               <Fragment>
-                <RequestDataButton onClick={() => genetateData(contextJson)}>
-                  genetateData
+                <RequestDataButton onClick={() => generateData(contextJson)}>
+                  Play with OpenAI
                 </RequestDataButton>
               </Fragment>
             </Placeholder>
@@ -206,86 +295,124 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
             backgroundColor: "#f4f4f4",
           }}
         >
-          <div
-            style={{
-              padding: "2rem",
-              width: "100%",
-              maxWidth: "500px",
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-              backgroundColor: "#fff",
-            }}
-          >
-            <h2
+          <Placeholder>
+            <div
               style={{
-                fontSize: "1.8rem",
-                fontWeight: "bold",
-                marginBottom: "1.5rem",
-                color: "#333",
-                textAlign: "center",
+                padding: "2rem",
+                width: "100%",
+                maxWidth: "500px",
+                border: "1px solid #ddd",
+                borderRadius: "8px",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "#fff",
               }}
             >
-              Configuration
-            </h2>
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label
-                htmlFor="openai-key"
+              <h2
                 style={{
-                  display: "block",
-                  fontSize: "1rem",
+                  fontSize: "1.8rem",
                   fontWeight: "bold",
-                  marginBottom: "0.5rem",
-                  color: "#555",
+                  marginBottom: "1.5rem",
+                  color: "#333",
+                  textAlign: "center",
                 }}
               >
-                OpenAI API Key
-              </label>
-              <input
-                id="openai-key"
-                type="text"
-                value={state.openAiKey || ""}
-                onChange={(e) =>
-                  setState({ ...state, openAiKey: e.target.value })
-                }
-                placeholder="Enter your OpenAI API key"
+                Configuration
+              </h2>
+              <div style={{ marginBottom: "1.5rem" }}>
+                <label
+                  htmlFor="openai-key"
+                  style={{
+                    display: "block",
+                    fontSize: "1rem",
+                    fontWeight: "bold",
+                    marginBottom: "0.5rem",
+                    color: "#555",
+                  }}
+                >
+                  OpenAI API Key
+                </label>
+                <input
+                  id="openai-key"
+                  type="text"
+                  value={state.openAiKey || ""}
+                  onChange={(e) =>
+                    setState({ ...state, openAiKey: e.target.value })
+                  }
+                  placeholder="**********************************"
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    fontSize: "1rem",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                    outline: "none",
+                    transition: "border-color 0.3s",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = "#6200ea")}
+                  onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+                />
+                <label
+                  htmlFor="openai-model"
+                  style={{
+                    display: "block",
+                    fontSize: "1rem",
+                    fontWeight: "bold",
+                    marginBottom: "0.5rem",
+                    color: "#555",
+                  }}
+                >
+                  Modèle ChatGPT
+                </label>
+                <select
+                  id="openai-model"
+                  value="gpt-3.5-turbo"
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    fontSize: "1rem",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                    outline: "none",
+                    marginBottom: "1rem",
+                    transition: "border-color 0.3s",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = "#6200ea")}
+                  onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+                >
+                  <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                  <option value="gpt-4">gpt-4</option>
+                  <option value="gpt-4-turbo">gpt-4-turbo</option>
+                  <option value="gpt-4o">gpt-4o</option>
+                </select>
+              </div>
+              <button
+                onClick={() => {
+                  localStorage.setItem("openAiKey", state.openAiKey || "");
+                }}
                 style={{
+                  display: "block",
                   width: "100%",
                   padding: "0.75rem",
                   fontSize: "1rem",
+                  fontWeight: "bold",
+                  color: "#fff",
+                  backgroundColor: "#6200ea",
+                  border: "none",
                   borderRadius: "4px",
-                  border: "1px solid #ccc",
-                  outline: "none",
-                  transition: "border-color 0.3s",
+                  cursor: "pointer",
+                  transition: "background-color 0.3s",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "#6200ea")}
-                onBlur={(e) => (e.target.style.borderColor = "#ccc")}
-              />
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#4500b5")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = "#6200ea")
+                }
+              >
+                Save configuration
+              </button>
             </div>
-            <button
-              onClick={() => {
-                localStorage.setItem("openaiKey", state.openAiKey || "");
-                alert("OpenAI API Key saved!");
-              }}
-              style={{
-                display: "block",
-                width: "100%",
-                padding: "0.75rem",
-                fontSize: "1rem",
-                fontWeight: "bold",
-                color: "#fff",
-                backgroundColor: "#6200ea",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                transition: "background-color 0.3s",
-              }}
-              onMouseEnter={(e) => (e.target.style.backgroundColor = "#4500b5")}
-              onMouseLeave={(e) => (e.target.style.backgroundColor = "#6200ea")}
-            >
-              Save Key
-            </button>
-          </div>
+          </Placeholder>
         </div>
       </TabsState>
     </AddonPanel>

@@ -26,22 +26,18 @@ interface AvatarProps {
 // }
 
 function getInitials(name: string) {
-  const names = name
-    .trim()
-    .split(" ")
-    .filter(Boolean);
+  const names = name.trim().split(" ").filter(Boolean);
   return names.map((n) => n[0].toUpperCase()).join("");
 }
 
 export const Avatar = ({
-  name,
+  name = "Romain Guinand",
   backgroundColor = "#007BFF",
   color = "#fff",
   size = "medium",
   ...props
 }: AvatarProps) => {
-  const dimension =
-    size === "small" ? 32 : size === "large" ? 64 : 48;
+  const dimension = size === "small" ? 32 : size === "large" ? 64 : 48;
 
   const avatarStyle = {
     display: "inline-flex",

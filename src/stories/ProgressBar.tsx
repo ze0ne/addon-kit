@@ -1,5 +1,7 @@
 import React from "react";
 
+type ProgressBarSize = "small" | "medium" | "large";
+
 interface ProgressBarProps {
   /**
    * Valeur actuelle de la progression (0 à 100)
@@ -10,28 +12,36 @@ interface ProgressBarProps {
    */
   color?: string;
   /**
-   * Hauteur de la barre (en px)
-   */
-  height?: number;
-  /**
    * Afficher le pourcentage ?
    */
   showLabel?: boolean;
+  /**
+   * Taille prédéfinie : small, medium, large
+   */
+  size?: ProgressBarSize;
 }
+
+const sizeToHeight: Record<ProgressBarSize, number> = {
+  small: 8,
+  medium: 16,
+  large: 28,
+};
 
 export const ProgressBar = ({
   value,
   color = "#1976d2",
-  height = 16,
   showLabel = false,
+  size = "medium",
   ...props
 }: ProgressBarProps) => {
+  const computedHeight = sizeToHeight[size];
+
   const containerStyle: React.CSSProperties = {
     width: "100%",
     background: "#e0e0e0",
-    borderRadius: height / 2,
+    borderRadius: computedHeight / 2,
     overflow: "hidden",
-    height,
+    height: computedHeight,
     margin: "8px 0",
     position: "relative",
   };
@@ -50,7 +60,7 @@ export const ProgressBar = ({
     transform: "translate(-50%, -50%)",
     color: "#fff",
     fontWeight: 600,
-    fontSize: height > 20 ? 16 : 12,
+    fontSize: computedHeight > 20 ? 16 : 12,
     pointerEvents: "none",
     textShadow: "0 1px 2px rgba(0,0,0,0.15)",
   };
@@ -58,9 +68,7 @@ export const ProgressBar = ({
   return (
     <div style={containerStyle} {...props}>
       <div style={barStyle} />
-      {showLabel && (
-        <span style={labelStyle}>{`${Math.round(value)}%`}</span>
-      )}
+      {showLabel && <span style={labelStyle}>{`${Math.round(value)}%`}</span>}
     </div>
   );
 };
