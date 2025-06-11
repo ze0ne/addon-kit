@@ -44,7 +44,7 @@
     "eject-ts": "zx scripts/eject-typescript.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "chromatic": "npx chromatic --project-token=chpt_4647bfd7d8e2b2c",
+    "chromatic": "npx chromatic --project-token=chpt_4647bfd7d8e2b2c --only-changed",
     "build:netlify": "npm run build && npm run build-storybook"
   },
   "dependencies": {
