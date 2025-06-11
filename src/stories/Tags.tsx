@@ -21,10 +21,6 @@ interface TagProps {
    * Peut-on fermer le tag ?
    */
   closable?: boolean;
-  /**
-   * Callback lors de la fermeture
-   */
-  onClose?: () => void;
 }
 
 export const Tag = ({
@@ -33,7 +29,6 @@ export const Tag = ({
   color = "#333",
   size = "medium",
   closable = false,
-  onClose,
   ...props
 }: TagProps) => {
   const tagStyle = {
@@ -76,7 +71,6 @@ export const Tag = ({
           type="button"
           aria-label="Fermer le tag"
           style={closeStyle}
-          onClick={onClose}
         >
           ×
         </button>

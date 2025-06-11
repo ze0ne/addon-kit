@@ -70,8 +70,7 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const prompt = textareaRef.current?.value ?? "";
-    generateData(contextJson, prompt);
+    generateData(contextJson, userPrompt);
   };
 
   useEffect(() => {
@@ -110,7 +109,8 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
         </label>
         <textarea
           id="user-prompt"
-          defaultValue=""
+          value={userPrompt}
+          onChange={onPromptChange}
           rows={4}
           ref={textareaRef}
           style={{
@@ -151,7 +151,16 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
         maxTokens: 2000,
         customPrompt: prompt,
       }).then((response: any) => {
-        updateArgs(response);
+        console.log("OpenAI response:", response);
+        const argsObject = response.reduce(
+          (acc, curr) => {
+            acc[curr.name] = curr.value;
+            return acc;
+          },
+          {} as Record<string, any>,
+        );
+        console.log("Generated args:", argsObject);
+        updateArgs(argsObject);
       });
       emit(EVENTS.REQUEST);
     },
@@ -254,140 +263,6 @@ export const Panel: React.FC<PanelProps> = memo(function MyPanel(props) {
               </Fragment>
             </Placeholder>
           }
-        </div>
-        <div
-          id="settings"
-          title="Settings"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "#f4f4f4",
-          }}
-        >
-          <Placeholder>
-            <div
-              style={{
-                padding: "2rem",
-                width: "100%",
-                maxWidth: "500px",
-                border: "1px solid #ddd",
-                borderRadius: "8px",
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                backgroundColor: "#fff",
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: "1.8rem",
-                  fontWeight: "bold",
-                  marginBottom: "1.5rem",
-                  color: "#333",
-                  textAlign: "center",
-                }}
-              >
-                Configuration
-              </h2>
-              <div style={{ marginBottom: "1.5rem" }}>
-                <label
-                  htmlFor="openai-key"
-                  style={{
-                    display: "block",
-                    fontSize: "1rem",
-                    fontWeight: "bold",
-                    marginBottom: "0.5rem",
-                    color: "#555",
-                  }}
-                >
-                  OpenAI API Key
-                </label>
-                <input
-                  id="openai-key"
-                  type="text"
-                  value={state.openAiKey || ""}
-                  onChange={(e) =>
-                    setState({ ...state, openAiKey: e.target.value })
-                  }
-                  placeholder="**********************************"
-                  style={{
-                    width: "100%",
-                    padding: "0.75rem",
-                    fontSize: "1rem",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                    outline: "none",
-                    transition: "border-color 0.3s",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#6200ea")}
-                  onBlur={(e) => (e.target.style.borderColor = "#ccc")}
-                />
-                <label
-                  htmlFor="openai-model"
-                  style={{
-                    display: "block",
-                    fontSize: "1rem",
-                    fontWeight: "bold",
-                    marginBottom: "0.5rem",
-                    color: "#555",
-                  }}
-                >
-                  Modèle ChatGPT
-                </label>
-                <select
-                  id="openai-model"
-                  value="gpt-3.5-turbo"
-                  style={{
-                    width: "100%",
-                    padding: "0.75rem",
-                    fontSize: "1rem",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                    outline: "none",
-                    marginBottom: "1rem",
-                    transition: "border-color 0.3s",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#6200ea")}
-                  onBlur={(e) => (e.target.style.borderColor = "#ccc")}
-                >
-                  <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                  <option value="gpt-4">gpt-4</option>
-                  <option value="gpt-4-turbo">gpt-4-turbo</option>
-                  <option value="gpt-4o">gpt-4o</option>
-                </select>
-              </div>
-              <button
-                onClick={() => {
-                  localStorage.setItem("openAiKey", state.openAiKey || "");
-                }}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  padding: "0.75rem",
-                  fontSize: "1rem",
-                  fontWeight: "bold",
-                  color: "#fff",
-                  backgroundColor: "#6200ea",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  transition: "background-color 0.3s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = "#4500b5")
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = "#6200ea")
-                }
-              >
-                Save configuration
-              </button>
-            </div>
-          </Placeholder>
         </div>
       </TabsState>
     </AddonPanel>

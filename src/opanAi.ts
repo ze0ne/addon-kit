@@ -9,14 +9,16 @@ export async function getOpenAiResponse({
 }) {
   const apiKey = localStorage.getItem("openAiKey") || "";
   const url = "https://api.openai.com/v1/chat/completions";
-  const model = "gpt-3.5-turbo";
+  const model = "gpt-4o-mini";
   const prompt = `Vous êtes un assistant qui complète un schéma de paramètres pour un composant.  
 – Les valeurs listées dans defaultValue et value dans le schéma sont uniquement des exemples pour illustrer le type attendu, à ne pas réutiliser.  
-– Pour chaque propriété, générez une nouvelle valeur cohérente avec sa description et son type.  
-– Répondez strictement par l’objet JSON complété, sans explications avec uniquement le nom de la propriété et une valeur générée en fonction de son type et sa description.
+– Répondez strictement par l’objet JSON complété, avec uniquement les propriétés "name" et "value". Supprimez tous les autres champs.  
+– La réponse doit être un JSON valide, sans texte autour.
 Les inscruction suivantes sont prioritaires: ${customPrompt}
 Schéma :
+\`\`\`json
 ${JSON.stringify(schema, null, 2)}
+\`\`\`
 
 Répondez uniquement par l’objet JSON complété, sans commentaire.`;
 
@@ -68,10 +70,41 @@ Répondez uniquement par l’objet JSON complété, sans commentaire.`;
     );
   }
 
-  const text = data.choices?.[0]?.message?.content;
+  const gptMessage = data.choices?.[0]?.message?.content || "";
+  console.log("Réponse de GPT :", gptMessage);
+
+  const parsed = sanitizeAndParseJson(gptMessage);
+  console.log("JSON nettoyé et analysé :", parsed);
+  return parsed;
+
+  if (!parsed) {
+    throw new Error("La réponse de GPT est mal formatée.");
+  }
+}
+
+
+export function sanitizeAndParseJson(raw: string): { name: string; value: any }[] | null {
   try {
-    return JSON.parse(text);
-  } catch (err) {
-    throw new Error("La réponse de l'API n'est pas un JSON valide : " + text);
+    const cleaned = raw
+      .replace(/```json|```/g, "")
+      .replace(/[\u201C\u201D“”]/g, '"')
+      .replace(/[\u2018\u2019‘’]/g, "'")
+      .replace(/\u3000|\u00A0/g, " ")
+      .trim();
+
+    const parsed = JSON.parse(cleaned);
+
+    if (!Array.isArray(parsed)) return null;
+
+    return parsed.map((item) => ({
+      name: item.name,
+      value:
+        item.value === "true" ? true :
+        item.value === "false" ? false :
+        item.value
+    }));
+  } catch (e) {
+    console.error("❌ JSON invalide même après nettoyage :", raw);
+    return null;
   }
 }

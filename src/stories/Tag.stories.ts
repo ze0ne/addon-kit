@@ -29,7 +29,6 @@ Composant React pour afficher un tag personnalisable, avec option de fermeture.
 - \`color\` (\`string\`) : Couleur du texte.
 - \`size\` (\`"small" | "medium" | "large"\`) : Taille du tag.
 - \`closable\` (\`boolean\`) : Affiche une croix de fermeture si \`true\`.
-- \`onClose\` (\`() => void\`) : Callback lors de la fermeture.
 
 **Exemple** :
 \`\`\`tsx

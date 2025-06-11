@@ -105,7 +105,7 @@ export const Article = ({
       </header>
       {imageUrl && <img src={imageUrl} alt={title} style={imageStyle} />}
       <section>
-        <p>{content}</p>
+        {content}
       </section>
       <footer style={footerStyle}>
         <button style={buttonStyle}>{label}</button>
