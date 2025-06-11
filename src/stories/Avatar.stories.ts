@@ -49,12 +49,3 @@ export const CustomColors: Story = {
     size: "medium",
   },
 };
-
-export const KOWhite: Story = {
-  args: {
-    name: "John Doe GHJK dhsfsdkf",
-    backgroundColor: "rgba(253, 253, 253, 1)",
-    color: "#fff",
-    size: "medium"
-  }
-};

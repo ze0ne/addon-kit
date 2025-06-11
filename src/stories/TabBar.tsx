@@ -1,4 +1,5 @@
 import React from "react";
+import { Badge } from "./Badge";
 
 interface Tab {
   label: string;
@@ -71,7 +72,7 @@ export const TabBar = ({
 
   return (
     <div style={containerStyle}>
-      {tabs.map((tab) => (
+      {tabs.map((tab, idx) => (
         <button
           key={tab.value}
           style={tabStyle(tab.value === activeTab, !!tab.disabled)}
@@ -88,7 +89,16 @@ export const TabBar = ({
               "transparent";
           }}
         >
-          {tab.label}
+          {tab.label}{" "}
+          {idx === 0 && (
+            <Badge
+              label="Beta"
+              backgroundColor={tab.disabled ? "#f0f0f0" : "#e3f2fd"}
+              color={tab.disabled ? "#999" : "#1976d2"}
+              size={size}
+              primary={tab.value === activeTab}
+            />
+          )}
         </button>
       ))}
     </div>
